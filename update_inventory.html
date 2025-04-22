@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Edit Inventory</title>
+  </head>
+  <body>
+    <h2>Edit Inventory Item</h2>
+    <form id="inventoryForm">
+      <label for="id">Item ID:</label><br>
+      <input type="text" name="id" id="idField" readonly><br><br>
+
+      <label for="name">Item Name:</label><br>
+      <input type="text" name="name" id="nameField" required><br><br>
+
+      <label for="quantity">Quantity:</label><br>
+      <input type="number" name="quantity" id="quantityField" required><br><br>
+
+      <button type="submit">Update Item</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+      // Parse itemID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const itemID = urlParams.get('itemID');
+      if (itemID) {
+        document.getElementById('idField').value = itemID;
+        
+        // Fetch existing data for this item if available
+        fetchInventoryData(itemID);
+      }
+
+      // Fetch inventory data by ID from the Apps Script API (doGet)
+      function fetchInventoryData(itemID) {
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec";
+        
+        fetch(scriptURL)
+          .then(response => response.json())
+          .then(data => {
+            const item = data.find(item => item.id === itemID);
+            if (item) {
+              document.getElementById('nameField').value = item.name;
+              document.getElementById('quantityField').value = item.quantity;
+            } else {
+              document.getElementById('responseMessage').textContent = "Item not found.";
+            }
+          })
+          .catch(error => {
+            document.getElementById('responseMessage').textContent = "Error fetching data: " + error;
+          });
+      }
+
+      document.getElementById("inventoryForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch("https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec", {
+          method: "POST",
+          body: formData
+        })
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById("responseMessage").textContent = text;
+        })
+        .catch(error => {
+          document.getElementById("responseMessage").textContent = "Error: " + error;
+        });
+      });
+    </script>
+  </body>
+</html>
