@@ -94,6 +94,9 @@
           .then(response => response.text())
           .then(text => {
             document.getElementById("responseMessage").textContent = text;
+            setTimeout(() => {
+            document.getElementById("responseMessage").textContent = "";
+            }, 5000);
           })
           .catch(error => {
             document.getElementById("responseMessage").textContent = "Error: " + error;
