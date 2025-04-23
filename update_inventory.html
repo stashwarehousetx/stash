@@ -15,11 +15,11 @@
       <label for="quantity">Quantity:</label><br>
       <input type="number" name="quantity" id="quantityField" required><br><br>
 
-      <label for="adjustType">Adjust Type:</label><br>
-      <select id="adjustType">
-        <option value="subtract">Subtract</option>
-        <option value="add">Add</option>
-      </select><br><br>
+      <label>Adjust Type:</label><br>
+      <input type="radio" id="subtractRadio" name="adjustType" value="subtract" checked>
+      <label for="subtractRadio">Subtract</label><br>
+      <input type="radio" id="addRadio" name="adjustType" value="add">
+      <label for="addRadio">Add</label><br><br>
 
       <label for="adjustAmount">Adjustment Amount:</label><br>
       <input type="number" id="adjustAmount" placeholder="Enter amount"><br><br>
@@ -32,8 +32,11 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const quantityField = document.getElementById("quantityField");
-        const adjustType = document.getElementById("adjustType");
         const adjustAmount = document.getElementById("adjustAmount");
+
+        const getAdjustType = () => {
+          return document.querySelector('input[name="adjustType"]:checked').value;
+        };
 
         // Populate itemID and load data
         const urlParams = new URLSearchParams(window.location.search);
@@ -61,41 +64,12 @@
             });
         }
 
-        // Update quantity based on adjustment
-        adjustAmount.addEventListener("input", updateQuantity);
-        adjustType.addEventListener("change", updateQuantity);
-
         function updateQuantity() {
           const original = parseInt(quantityField.value, 10);
           const adjust = parseInt(adjustAmount.value, 10);
+          const type = getAdjustType();
 
           if (!isNaN(original) && !isNaN(adjust)) {
-            if (adjustType.value === "add") {
-              quantityField.value = original + adjust;
-            } else {
-              quantityField.value = Math.max(0, original - adjust);
-            }
-          }
-        }
-
-        // Submit form
-        document.getElementById("inventoryForm").addEventListener("submit", function(e) {
-          e.preventDefault();
-          const formData = new FormData(this);
-
-          fetch("https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec", {
-            method: "POST",
-            body: formData
-          })
-          .then(response => response.text())
-          .then(text => {
-            document.getElementById("responseMessage").textContent = text;
-          })
-          .catch(error => {
-            document.getElementById("responseMessage").textContent = "Error: " + error;
-          });
-        });
-      });
-    </script>
-  </body>
-</html>
+            quantityField.value = type === "add"
+              ? original + adjust
+              : Math.max(0, original -
