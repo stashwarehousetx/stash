@@ -15,8 +15,14 @@
       <label for="quantity">Quantity:</label><br>
       <input type="number" name="quantity" id="quantityField" required><br><br>
 
-      <label for="subtract">Subtract From Quantity:</label><br>
-      <input type="number" id="subtractField" placeholder="Enter number to subtract"><br><br>
+      <label>Adjust Type:</label><br>
+      <input type="radio" id="subtractRadio" name="adjustType" value="subtract" checked>
+      <label for="subtractRadio">Subtract</label><br>
+      <input type="radio" id="addRadio" name="adjustType" value="add">
+      <label for="addRadio">Add</label><br><br>
+
+      <label for="adjustAmount">Adjustment Amount:</label><br>
+      <input type="number" id="adjustAmount" placeholder="Enter amount"><br><br>
 
       <button type="submit">Update Item</button>
     </form>
@@ -24,56 +30,74 @@
     <p id="responseMessage"></p>
 
     <script>
-      // Parse itemID from URL
-      const urlParams = new URLSearchParams(window.location.search);
-      const itemID = urlParams.get('itemID');
-      if (itemID) {
-        document.getElementById('idField').value = itemID;
-        fetchInventoryData(itemID);
-      }
+      document.addEventListener("DOMContentLoaded", function () {
+        const idField = document.getElementById("idField");
+        const nameField = document.getElementById("nameField");
+        const quantityField = document.getElementById("quantityField");
+        const adjustAmount = document.getElementById("adjustAmount");
 
-      // Fetch inventory data by ID
-      function fetchInventoryData(itemID) {
-        const scriptURL = "https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec";
-        fetch(scriptURL)
-          .then(response => response.json())
-          .then(data => {
-            const item = data.find(item => item.id === itemID);
-            if (item) {
-              document.getElementById('nameField').value = item.name;
-              document.getElementById('quantityField').value = item.quantity;
-            } else {
-              document.getElementById('responseMessage').textContent = "Item not found.";
-            }
+        const getAdjustType = () => {
+          return document.querySelector('input[name="adjustType"]:checked').value;
+        };
+
+        // Get itemID from URL and fetch data
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemID = urlParams.get('itemID');
+        if (itemID) {
+          idField.value = itemID;
+          fetchInventoryData(itemID);
+        }
+
+        function fetchInventoryData(itemID) {
+          const scriptURL = "https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec";
+          fetch(scriptURL)
+            .then(response => response.json())
+            .then(data => {
+              const item = data.find(item => item.id === itemID);
+              if (item) {
+                nameField.value = item.name;
+                quantityField.value = item.quantity;
+              } else {
+                document.getElementById('responseMessage').textContent = "Item not found.";
+              }
+            })
+            .catch(error => {
+              document.getElementById('responseMessage').textContent = "Error fetching data: " + error;
+            });
+        }
+
+        function updateQuantity() {
+          const original = parseInt(quantityField.value, 10);
+          const adjust = parseInt(adjustAmount.value, 10);
+          const type = getAdjustType();
+
+          if (!isNaN(original) && !isNaN(adjust)) {
+            quantityField.value = type === "add"
+              ? original + adjust
+              : Math.max(0, original - adjust);
+          }
+        }
+
+        adjustAmount.addEventListener("input", updateQuantity);
+        document.getElementsByName("adjustType").forEach(radio => {
+          radio.addEventListener("change", updateQuantity);
+        });
+
+        document.getElementById("inventoryForm").addEventListener("submit", function(e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch("https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec", {
+            method: "POST",
+            body: formData
+          })
+          .then(response => response.text())
+          .then(text => {
+            document.getElementById("responseMessage").textContent = text;
           })
           .catch(error => {
-            document.getElementById('responseMessage').textContent = "Error fetching data: " + error;
+            document.getElementById("responseMessage").textContent = "Error: " + error;
           });
-      }
-
-      // Automatically subtract value from quantity when input changes
-      document.getElementById("subtractField").addEventListener("input", function () {
-        const originalQuantity = parseInt(document.getElementById("quantityField").value, 10);
-        const subtractValue = parseInt(this.value, 10);
-        if (!isNaN(originalQuantity) && !isNaN(subtractValue)) {
-          document.getElementById("quantityField").value = Math.max(0, originalQuantity - subtractValue);
-        }
-      });
-
-      document.getElementById("inventoryForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-
-        fetch("https://script.google.com/macros/s/AKfycbyxHo8K0W0B8cj2_WCJ_EhjKxNNwFj-gE90Xo2-ZT55V30mfJeawwE9-Kq1n157gScU/exec", {
-          method: "POST",
-          body: formData
-        })
-        .then(response => response.text())
-        .then(text => {
-          document.getElementById("responseMessage").textContent = text;
-        })
-        .catch(error => {
-          document.getElementById("responseMessage").textContent = "Error: " + error;
         });
       });
     </script>
