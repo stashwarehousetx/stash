@@ -50,7 +50,7 @@
         }
 
         function fetchInventoryData(itemID) {
-          const scriptURL = "https://script.google.com/macros/s/AKfycbxQfWo3hJjFPwzBp6Q9kk_kyUHpPhkCp1QG6LrsZoNMeUAMdBOlFwUVXG4TN4H-weUJ/exec";
+          const scriptURL = "https://script.google.com/macros/s/AKfycbxVuBjfAsLr_GHiDvLp0h3COj1MTn0OZngv0K97TsCMfOWyBXu0mdPiD3mwOILqdjA/exec";
           fetch(scriptURL)
             .then(response => response.json())
             .then(data => {
@@ -88,7 +88,7 @@
           e.preventDefault();
           const formData = new FormData(this);
 
-          fetch("https://script.google.com/macros/s/AKfycbxQfWo3hJjFPwzBp6Q9kk_kyUHpPhkCp1QG6LrsZoNMeUAMdBOlFwUVXG4TN4H-weUJ/exec", {
+          fetch("https://script.google.com/macros/s/AKfycbxVuBjfAsLr_GHiDvLp0h3COj1MTn0OZngv0K97TsCMfOWyBXu0mdPiD3mwOILqdjA/exec", {
             method: "POST",
             body: formData
           })
